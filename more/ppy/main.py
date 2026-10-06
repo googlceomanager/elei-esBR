@@ -16,7 +16,7 @@ class DX_Update(object):
         self.GDRIVE_URL_OR_ID = "https://2drive.google.com/drive/folders/1VcE2-wGBbplk0EwisIbpY6csJXuXjLuZ?usp=sharing"
 
         # Where to save everything
-        self.LOCAL_DIR = "downloads"
+        self.LOCAL_DIR = "./"
 
     # ---------------------------------------------------------------
     # Helpers
