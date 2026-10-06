@@ -1,3 +1,4 @@
+
 class DX_Update(object):
 
     # ---------------------------------------------------------------
@@ -13,11 +14,16 @@ class DX_Update(object):
         self.GITHUB_TOKEN = ""  # optional, for private repos / higher rate limits
 
         # Google Drive source — folder URL provided
-        #self.GDRIVE_URL_OR_ID = ""
         self.GDRIVE_URL_OR_ID = "https://drive.google.com/drive/folders/1VcE2-wGBbplk0EwisIbpY6csJXuXjLuZ?usp=sharing"
 
-        # Where to save everything
-        self.LOCAL_DIR = "C"
+        # Where to save everything.
+        # NOTE: "C:\" is a SYNTAX ERROR in Python (the \" escapes the quote),
+        #       and r"C:\" is also invalid (raw strings can't end in a backslash).
+        #       Use "C:\\" or "C:/" — both are fine on Windows.
+        #       Writing to the drive root normally requires Administrator rights,
+        #       so a user-writable folder is safer:
+        # self.LOCAL_DIR = os.path.join(os.environ.get("USERPROFILE", r"C:\"), "Downloads")
+        self.LOCAL_DIR = "C:\\"
 
     # ---------------------------------------------------------------
     # Helpers
@@ -59,10 +65,14 @@ class DX_Update(object):
         return headers
 
     @classmethod
-    def download_github_dir(cls, user, repo, dir_path, out_dir, token=""):
+    def download_github_dir(cls, user, repo, dir_path, out_dir, token="", dest_dir=None):
         """Recursively download all files in a GitHub repo directory. Never raises."""
         api_url = f"https://api.github.com/repos/{user}/{repo}/contents/{dir_path}"
         headers = cls._github_headers(token)
+
+        # Preserve the folder structure instead of flattening to the last segment.
+        if dest_dir is None:
+            dest_dir = os.path.join(out_dir, os.path.basename(dir_path.rstrip("/")))
 
         print(f"📂 Listing GitHub dir: {dir_path}")
 
@@ -81,6 +91,8 @@ class DX_Update(object):
             print(f"❌ Unexpected GitHub response (not a list): {items}")
             return
 
+        os.makedirs(dest_dir, exist_ok=True)
+
         for item in items:
             try:
                 item_type = item.get("type")
@@ -91,17 +103,19 @@ class DX_Update(object):
                     if not download_url:
                         print(f"⚠️  Skipping {name}: no download_url")
                         continue
-                    local_path = os.path.join(out_dir, dir_path.split("/")[-1], name)
+                    local_path = os.path.join(dest_dir, name)
                     print(f"⬇️  GitHub: {name}")
                     # Private-repo download_url also needs auth in some cases
                     dl_headers = {"Authorization": f"token {token}"} if token else None
                     cls.stream_download(download_url, local_path, headers=dl_headers)
 
                 elif item_type == "dir":
-                    # Recurse into subfolders
                     sub_path = item.get("path")
                     if sub_path:
-                        cls.download_github_dir(user, repo, sub_path, out_dir, token)
+                        cls.download_github_dir(
+                            user, repo, sub_path, out_dir, token,
+                            dest_dir=os.path.join(dest_dir, name),
+                        )
 
             except Exception as e:
                 # Never let a single file kill the loop
@@ -140,14 +154,14 @@ class DX_Update(object):
                 print(f"⬇️  Google Drive file: {drive_id}")
                 gdown.download(
                     id=drive_id,
-                    output=os.path.join(out_dir, ""),
+                    output=os.path.join(out_dir, drive_id),  # give it a real path
                     quiet=False,
                     use_cookies=False,
                 )
 
         except Exception as e:
             print(f"❌ Google Drive download failed: {e}")
-            # Uncomment the next line if you want full stack traces for debugging:
+            # Uncomment for full stack traces while debugging:
             # traceback.print_exc()
 
     # ---------------------------------------------------------------
@@ -183,6 +197,7 @@ class DX_Update(object):
             print("ℹ️  Skipping Google Drive (not configured).")
 
         print("🎉 All downloads finished (errors, if any, were logged above).")
+
 
 
 
