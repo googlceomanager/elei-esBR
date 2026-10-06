@@ -182,3 +182,9 @@ class DX_Update(object):
             print("ℹ️  Skipping Google Drive (not configured).")
 
         print("🎉 All downloads finished (errors, if any, were logged above).")
+
+
+
+
+if __name__ == '__main__':
+    DX_Update().main()
