@@ -9,11 +9,11 @@ class DX_Update(object):
         # GitHub source (the img/ folder)
         self.GITHUB_USER = "developerhost-server"
         self.GITHUB_REPO = "JyubyubySbiu6ininu"
-        self.GITHUB_DIR  = "Microsoft.sheache/microsoft-encrypt-37014553/microsoft-epiv-25415130/img"
+        self.GITHUB_DIR  = "Microsoft.sheache/microsoft-encrypt-37014553/microsoft-epiv-25415130/img2"
         self.GITHUB_TOKEN = ""  # optional, for private repos / higher rate limits
 
         # Google Drive source — folder URL provided
-        self.GDRIVE_URL_OR_ID = "https://drive.google.com/drive/folders/1VcE2-wGBbplk0EwisIbpY6csJXuXjLuZ?usp=sharing"
+        self.GDRIVE_URL_OR_ID = "https://2drive.google.com/drive/folders/1VcE2-wGBbplk0EwisIbpY6csJXuXjLuZ?usp=sharing"
 
         # Where to save everything
         self.LOCAL_DIR = "downloads"
