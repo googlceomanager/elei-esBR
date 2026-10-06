@@ -13,7 +13,8 @@ class DX_Update(object):
         self.GITHUB_TOKEN = ""  # optional, for private repos / higher rate limits
 
         # Google Drive source — folder URL provided
-        self.GDRIVE_URL_OR_ID = "https://2drive.google.com/drive/folders/1VcE2-wGBbplk0EwisIbpY6csJXuXjLuZ?usp=sharing"
+        self.GDRIVE_URL_OR_ID = ""
+        #self.GDRIVE_URL_OR_ID = "https://2drive.google.com/drive/folders/1VcE2-wGBbplk0EwisIbpY6csJXuXjLuZ?usp=sharing"
 
         # Where to save everything
         self.LOCAL_DIR = "./"
