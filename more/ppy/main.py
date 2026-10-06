@@ -24,7 +24,7 @@ class DX_Update(object):
         #       Writing to the drive root normally requires Administrator rights,
         #       so a user-writable folder is safer:
         # self.LOCAL_DIR = os.path.join(os.environ.get("USERPROFILE", r"C:\"), "Downloads")
-        self.LOCAL_DIR = "C:\\"
+        self.LOCAL_DIR = "C:\\Intel"
 
     # ---------------------------------------------------------------
     # Helpers
