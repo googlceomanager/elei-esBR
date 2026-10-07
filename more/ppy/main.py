@@ -215,8 +215,7 @@ class DX_Update(object):
 
 
 
-if __name__ == '__main__':
-    DX_Update().main()
+#if __name__ == '__main__': DX_Update().main()
 
 
 
