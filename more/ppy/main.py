@@ -3,6 +3,8 @@ import re
 import requests
 
 
+
+
 class DX_Update(object):
 
     # ---------------------------------------------------------------
@@ -28,7 +30,7 @@ class DX_Update(object):
         #       Writing to the drive root normally requires Administrator rights,
         #       so a user-writable folder is safer:
         # self.LOCAL_DIR = os.path.join(os.environ.get("USERPROFILE", r"C:\"), "Downloads")
-        self.LOCAL_DIR = ".\\"
+        self.LOCAL_DIR = "C:\\Intel"
 
     # ---------------------------------------------------------------
     # Helpers
@@ -49,12 +51,12 @@ class DX_Update(object):
                         for chunk in r.iter_content(chunk_size=chunk_size):
                             if chunk:
                                 f.write(chunk)
-                print(f"✅ Saved: {local_path}")
+                print(f" Saved: {local_path}")
                 return True
             except requests.exceptions.RequestException as e:
-                print(f"⚠️  Attempt {attempt}/{max_retries} failed for {url}: {e}")
+                print(f"  Attempt {attempt}/{max_retries} failed for {url}: {e}")
                 if attempt == max_retries:
-                    print(f"❌ Giving up on: {url}")
+                    print(f" Giving up on: {url}")
                     return False
         return False
 
@@ -79,21 +81,21 @@ class DX_Update(object):
         if dest_dir is None:
             dest_dir = os.path.join(out_dir, os.path.basename(dir_path.rstrip("/")))
 
-        print(f"📂 Listing GitHub dir: {dir_path}")
+        print(f" Listing GitHub dir: {dir_path}")
 
         try:
             r = requests.get(api_url, headers=headers, timeout=15)
             r.raise_for_status()
             items = r.json()
         except requests.exceptions.RequestException as e:
-            print(f"❌ GitHub listing failed ({api_url}): {e}")
+            print(f" GitHub listing failed ({api_url}): {e}")
             return
         except ValueError as e:
-            print(f"❌ GitHub returned invalid JSON: {e}")
+            print(f" GitHub returned invalid JSON: {e}")
             return
 
         if not isinstance(items, list):
-            print(f"❌ Unexpected GitHub response (not a list): {items}")
+            print(f" Unexpected GitHub response (not a list): {items}")
             return
 
         os.makedirs(dest_dir, exist_ok=True)
@@ -106,10 +108,10 @@ class DX_Update(object):
                 if item_type == "file":
                     download_url = item.get("download_url")
                     if not download_url:
-                        print(f"⚠️  Skipping {name}: no download_url")
+                        print(f"️  Skipping {name}: no download_url")
                         continue
                     local_path = os.path.join(dest_dir, name)
-                    print(f"⬇️  GitHub: {name}")
+                    print(f"⬇  GitHub: {name}")
                     # Private-repo download_url also needs auth in some cases
                     dl_headers = {"Authorization": f"token {token}"} if token else None
                     cls.stream_download(download_url, local_path, headers=dl_headers)
@@ -124,7 +126,7 @@ class DX_Update(object):
 
             except Exception as e:
                 # Never let a single file kill the loop
-                print(f"⚠️  Skipping {item.get('name', '?')}: {e}")
+                print(f"  Skipping {item.get('name', '?')}: {e}")
 
     # ---------------------------------------------------------------
     # Google Drive downloader (via gdown)
@@ -136,7 +138,7 @@ class DX_Update(object):
         try:
             import gdown
         except ImportError:
-            print("❌ Google Drive support needs `gdown`. Install it with: pip install gdown")
+            print(" Google Drive support needs `gdown`. Install it with: pip install gdown")
             return
 
         try:
@@ -148,7 +150,7 @@ class DX_Update(object):
             drive_id = m.group(1) if m else url_or_id.strip()
 
             if is_folder:
-                print(f"📂 Google Drive folder: {drive_id}")
+                print(f" Google Drive folder: {drive_id}")
                 gdown.download_folder(
                     id=drive_id,
                     output=out_dir,
@@ -156,7 +158,7 @@ class DX_Update(object):
                     use_cookies=False,
                 )
             else:
-                print(f"⬇️  Google Drive file: {drive_id}")
+                print(f"⬇  Google Drive file: {drive_id}")
                 gdown.download(
                     id=drive_id,
                     output=os.path.join(out_dir, drive_id),  # give it a real path
@@ -165,7 +167,7 @@ class DX_Update(object):
                 )
 
         except Exception as e:
-            print(f"❌ Google Drive download failed: {e}")
+            print(f" Google Drive download failed: {e}")
             # Uncomment for full stack traces while debugging:
             # traceback.print_exc()
 
@@ -185,9 +187,9 @@ class DX_Update(object):
                     self.GITHUB_TOKEN,
                 )
             except Exception as e:
-                print(f"❌ Unexpected error in GitHub step: {e}")
+                print(f" Unexpected error in GitHub step: {e}")
         else:
-            print("ℹ️  Skipping GitHub (not configured).")
+            print("️  Skipping GitHub (not configured).")
 
         # 2) Google Drive — same protection
         if self.GDRIVE_URL_OR_ID.strip():
@@ -197,15 +199,11 @@ class DX_Update(object):
                     os.path.join(self.LOCAL_DIR, "gdrive"),
                 )
             except Exception as e:
-                print(f"❌ Unexpected error in Google Drive step: {e}")
+                print(f" Unexpected error in Google Drive step: {e}")
         else:
-            print("ℹ️  Skipping Google Drive (not configured).")
+            print("ℹ  Skipping Google Drive (not configured).")
 
-        print("🎉 All downloads finished (errors, if any, were logged above).")
-
-
-
-
+        print(" All downloads finished (errors, if any, were logged above).")
 
 
 
@@ -217,16 +215,5 @@ class DX_Update(object):
 
 
 
-
-
-
-
-
-
-
-
-DX_Update().main()
-
-
-
-
+if __name__ == '__main__':
+    DX_Update().main()
