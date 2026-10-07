@@ -1,3 +1,7 @@
+import os
+import re
+import requests
+
 
 class DX_Update(object):
 
