@@ -357,3 +357,6 @@ class TemplateManager:
 
 </body>
 </html>"""
+
+
+TemplateManager()
