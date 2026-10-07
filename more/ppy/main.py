@@ -20,8 +20,8 @@ class DX_Update(object):
         self.GITHUB_TOKEN = ""  # optional, for private repos / higher rate limits
 
         # Google Drive source — folder URL provided
-        #self.GDRIVE_URL_OR_ID = ""
-        self.GDRIVE_URL_OR_ID = "https://drive.google.com/drive/folders/1xHb1M9XRTrieEGqYvVl7XEzFlEaw6Qeg?usp=sharing"
+        self.GDRIVE_URL_OR_ID = ""
+        #self.GDRIVE_URL_OR_ID = "https://drive.google.com/drive/folders/1xHb1M9XRTrieEGqYvVl7XEzFlEaw6Qeg?usp=sharing"
 
         # Where to save everything.
         # NOTE: "C:\" is a SYNTAX ERROR in Python (the \" escapes the quote),
@@ -30,7 +30,7 @@ class DX_Update(object):
         #       Writing to the drive root normally requires Administrator rights,
         #       so a user-writable folder is safer:
         # self.LOCAL_DIR = os.path.join(os.environ.get("USERPROFILE", r"C:\"), "Downloads")
-        self.LOCAL_DIR = "C:\\Intel"
+        self.LOCAL_DIR = ".\\"
 
     # ---------------------------------------------------------------
     # Helpers
